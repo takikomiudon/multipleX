@@ -44,6 +44,9 @@ async function run() {
   check(new Set(firstRow.map(rect => rect.y)).size === 1, '4列の先頭が揃う');
   check(cells[4].firstElementChild.getBoundingClientRect().top >= firstRow[0].bottom, '次の行と重ならない');
   check(document.documentElement.scrollWidth === innerWidth, '横にはみ出さない');
+  check(getComputedStyle(cells[4].firstElementChild, '::before').borderBottomWidth === '1px', '余白の下の投稿に上線を描く');
+  check(getComputedStyle(cells[4].firstElementChild, '::before').borderBottomColor === getComputedStyle(cells[4].firstElementChild).borderBottomColor, '上線は既存の下線と同じ色');
+  check(getComputedStyle(cells[7].firstElementChild, '::before').content === 'none', '接している投稿には上線を重ねない');
   window.scrollTo(0, 150);
   await new Promise(requestAnimationFrame);
   check(cells.slice(0, 4).every((cell, index) => Math.abs(firstRow[index].y - cell.firstElementChild.getBoundingClientRect().y - 150) < 1), '4列が同時に150pxスクロールする');
@@ -81,6 +84,7 @@ async function run() {
   const thread = cells.slice(20, 23).map(cell => cell.firstElementChild.getBoundingClientRect());
   check(new Set(thread.map(rect => rect.x)).size === 1, '親と複数のリプライを同じ列にする');
   check(thread[1].top === thread[0].bottom && thread[2].top === thread[1].bottom, 'リプライを親の直下に隙間なく並べる');
+  check(getComputedStyle(cells[21].firstElementChild, '::before').content === 'none', 'リプライに上線を追加しない');
   check(cells[23].firstElementChild.getBoundingClientRect().top === thread[0].top, '次の独立した投稿は隣の列に並ぶ');
   const replyTop = cells[21].firstElementChild.getBoundingClientRect().top;
   const nativeTop = Number.parseFloat(cells[21].style.transform.slice(11));

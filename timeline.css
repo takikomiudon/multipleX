@@ -45,6 +45,17 @@
   flex-shrink: 0 !important;
 }
 
+.multiplex-home [data-testid="primaryColumn"] .multiplex-top-border > :first-child::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  border-bottom: 1px solid;
+  border-bottom-color: inherit;
+  pointer-events: none;
+}
+
 .multiplex-home [data-testid="primaryColumn"] article button[data-testid="caret"] {
   width: 32px !important;
   min-width: 32px;

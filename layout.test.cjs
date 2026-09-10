@@ -35,3 +35,12 @@ assert.deepEqual(threadPositions, [0, 240, 400], '親と複数のリプライが
 assert.equal(threadTop, 300, 'スレッド全体で1列分のスクロール枠を使う');
 assert.equal(context.layoutThreadSlot(1, 2, threadHeights, groupedHeights).offset, -150, '親がDOMから消えても返信の位置計算を維持する');
 console.log('PASS: vertical thread layout and native slot heights');
+
+const borderHeights = new Map([[0, 220], [1, 280], [2, 340], [3, 400]]);
+assert.equal(context.needsTopBorder(4, 0, borderHeights), true, '上の投稿との間に余白があれば上線を描く');
+assert.equal(context.needsTopBorder(7, 0, borderHeights), false, '直上の投稿に接していれば上線を重ねない');
+assert.equal(context.needsTopBorder(0, 0, borderHeights), true, '先頭の投稿にも上線を描く');
+assert.equal(context.needsTopBorder(4, 1, borderHeights), false, '連続したリプライには上線を追加しない');
+borderHeights.set(0, 400);
+assert.equal(context.needsTopBorder(4, 0, borderHeights), false, '高さの変更で隙間がなくなれば線を消す');
+console.log('PASS: top separators only for separated posts');

@@ -1,3 +1,9 @@
+function needsTopBorder(index, part, heights) {
+  if (part > 0) return false;
+  if (!heights.has(index - 4)) return true;
+  return heights.get(index - 4) < layoutSlot(index - 4, heights).height * 4;
+}
+
 function layoutSlot(index, heights) {
   const column = ((index % 4) + 4) % 4;
   const start = index - column;

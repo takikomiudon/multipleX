@@ -100,6 +100,7 @@ function layoutTimelines() {
       state.heights.set(index, [...members.values()].reduce((sum, height) => sum + height, 0));
     }
     for (const { cell, index, part, height, fullWidth } of entries) {
+      cell.classList.toggle('multiplex-top-border', !fullWidth && needsTopBorder(index, part, state.heights));
       if (fullWidth) {
         const divider = layoutDivider(index, height, state.heights);
         cell.style.setProperty('--multiplex-width', '100%');
