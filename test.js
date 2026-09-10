@@ -38,6 +38,21 @@ async function run() {
   check(notice.firstElementChild.getBoundingClientRect().top >= timeline.getBoundingClientRect().top, '新着通知が上に隠れない');
   await new Promise(requestAnimationFrame);
   const cells = [...timeline.children].filter(cell => cell.querySelectorAll('article').length > 0);
+  const beforeEmpty = cells.slice(0, 8).map(cell => cell.firstElementChild.getBoundingClientRect().toJSON());
+  for (const position of [1, 2, 3]) {
+    const empty = document.createElement('div');
+    empty.dataset.testid = 'cellInnerDiv';
+    empty.innerHTML = '<div class="css-g5y9jx r-1adg3ll r-1ny4l3l"></div>';
+    timeline.insertBefore(empty, cells[position]);
+    measureNativeTimeline();
+    check(empty.getBoundingClientRect().height === 0, '空の要素は改行用の高さを持たない');
+    check(cells.slice(0, 8).every((cell, index) => {
+      const rect = cell.firstElementChild.getBoundingClientRect();
+      return rect.x === beforeEmpty[index].x && rect.y === beforeEmpty[index].y;
+    }), '空の要素で右側の列を空けない');
+    empty.remove();
+    measureNativeTimeline();
+  }
   const firstRow = cells.slice(0, 4).map(cell => cell.firstElementChild.getBoundingClientRect());
   check(firstRow[0].width >= (innerWidth - 280) / 4, 'メニュー以外の横幅を4列で使う');
   check(new Set(firstRow.map(rect => rect.x)).size === 4, '異なる4列に配置される');
