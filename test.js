@@ -72,8 +72,26 @@ async function run() {
   document.documentElement.classList.remove('multiplex-home');
   check(getComputedStyle(cells[4]).width === `${timeline.clientWidth}px`, 'ホーム以外では元の幅に戻る');
   document.documentElement.classList.add('multiplex-home');
+  for (const cell of cells.slice(21, 23)) {
+    const connector = document.createElement('div');
+    connector.className = 'r-1bnu78o r-m5arl1 r-1p0dtai';
+    cell.firstElementChild.prepend(connector);
+  }
+  measureNativeTimeline(249);
+  const thread = cells.slice(20, 23).map(cell => cell.firstElementChild.getBoundingClientRect());
+  check(new Set(thread.map(rect => rect.x)).size === 1, '親と複数のリプライを同じ列にする');
+  check(thread[1].top === thread[0].bottom && thread[2].top === thread[1].bottom, 'リプライを親の直下に隙間なく並べる');
+  check(cells[23].firstElementChild.getBoundingClientRect().top === thread[0].top, '次の独立した投稿は隣の列に並ぶ');
+  const replyTop = cells[21].firstElementChild.getBoundingClientRect().top;
+  const nativeTop = Number.parseFloat(cells[21].style.transform.slice(11));
+  for (const cell of [...timeline.children]) {
+    if (cell === cells[21]) break;
+    cell.remove();
+  }
+  measureNativeTimeline(nativeTop);
+  check(cells[21].firstElementChild.getBoundingClientRect().top === replyTop, '親が画面外で削除されてもリプライの位置を維持する');
   window.scrollTo(0, 0);
-  result.textContent = 'PASS: 4列・行の重なり・横幅・共通スクロール・追加投稿・仮想スクロール・ホーム限定';
+  result.textContent = 'PASS: 4列・共通スクロール・通知・お礼・親子スレッド・仮想スクロール・ホーム限定';
 }
 window.addEventListener('load', () => {
   requestAnimationFrame(() => requestAnimationFrame(run));

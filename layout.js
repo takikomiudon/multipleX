@@ -17,3 +17,15 @@ function layoutDivider(index, height, heights) {
   if (column > 0) offset = layoutSlot(index - 1, heights).height * (4 - column);
   return { height: height + offset, offset };
 }
+
+function layoutThreadSlot(index, part, members, heights) {
+  const slot = layoutSlot(index, heights);
+  const count = Math.max(...members.keys()) + 1;
+  const nativeOffset = Math.floor(slot.height * part / count);
+  const height = Math.floor(slot.height * (part + 1) / count) - nativeOffset;
+  let contentOffset = 0;
+  for (const [member, memberHeight] of members) {
+    if (member < part) contentOffset += memberHeight;
+  }
+  return { column: slot.column, height, offset: slot.offset + nativeOffset - contentOffset };
+}

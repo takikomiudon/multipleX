@@ -20,3 +20,18 @@ assert.equal(context.layoutDivider(0, 49, heights).height, 49, '先頭の通知�
 assert.equal(context.layoutDivider(2, 49, heights).offset, 352, '途中の通知は前の行の残りを空ける');
 assert.equal(context.layoutDivider(2, 49, heights).height, 401);
 console.log('PASS: native offsets, partial rows, prepending and resizing');
+
+const threadHeights = new Map([[0, 240], [1, 160], [2, 200]]);
+const groupedHeights = new Map([[0, 100], [1, 600], [2, 300], [3, 200]]);
+let threadTop = 150;
+const threadPositions = [];
+for (let part = 0; part < 3; part++) {
+  const slot = context.layoutThreadSlot(1, part, threadHeights, groupedHeights);
+  assert.equal(slot.column, 1);
+  threadPositions.push(threadTop - slot.offset);
+  threadTop += slot.height;
+}
+assert.deepEqual(threadPositions, [0, 240, 400], '親と複数のリプライが同じ列で縦につながる');
+assert.equal(threadTop, 300, 'スレッド全体で1列分のスクロール枠を使う');
+assert.equal(context.layoutThreadSlot(1, 2, threadHeights, groupedHeights).offset, -150, '親がDOMから消えても返信の位置計算を維持する');
+console.log('PASS: vertical thread layout and native slot heights');
