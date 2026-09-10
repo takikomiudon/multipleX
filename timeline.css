@@ -40,3 +40,34 @@
   top: var(--multiplex-offset) !important;
   flex-shrink: 0 !important;
 }
+
+.multiplex-home [data-testid="primaryColumn"] article button[data-testid="caret"] {
+  width: auto !important;
+  min-width: 56px;
+  min-height: 32px;
+  padding-inline: 6px;
+  color: #71767b;
+}
+
+.multiplex-home [data-testid="primaryColumn"] article button[data-testid="caret"] > * {
+  display: none !important;
+}
+
+.multiplex-home [data-testid="primaryColumn"] article button[data-testid="caret"]::after {
+  content: "興味なし";
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.multiplex-home [data-testid="primaryColumn"] article button[data-testid="caret"]:hover {
+  color: #1d9bf0;
+}
+
+.multiplex-home [data-testid="primaryColumn"] article button[data-testid="caret"]:focus-visible {
+  outline: 2px solid currentColor;
+}
+
+.multiplex-feedback-error {
+  color: #f4212e;
+  font-size: 12px;
+}

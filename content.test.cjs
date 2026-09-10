@@ -7,6 +7,7 @@ const listeners = new Map();
 const classes = new Set();
 runInNewContext(readFileSync('content.js', 'utf8'), {
   location,
+  labelFeedbackButtons() {},
   ResizeObserver: class { observe() {} },
   MutationObserver: class { observe() {} },
   requestAnimationFrame() {},

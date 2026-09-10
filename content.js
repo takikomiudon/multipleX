@@ -10,6 +10,7 @@ function scheduleLayout() {
     scheduled = false;
     if (location.pathname !== '/home') return;
     layoutTimelines();
+    labelFeedbackButtons();
   });
 }
 
@@ -86,6 +87,7 @@ function layoutTimelines() {
 
 function updateHomeLayout() {
   document.documentElement.classList.toggle('multiplex-home', location.pathname === '/home');
+  labelFeedbackButtons();
   scheduleLayout();
 }
 
