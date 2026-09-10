@@ -27,7 +27,7 @@
 }
 
 .multiplex-home [data-testid="primaryColumn"] section [aria-label] > div > [data-testid="cellInnerDiv"] {
-  width: 25% !important;
+  width: var(--multiplex-width) !important;
   min-width: 0 !important;
   height: var(--multiplex-height) !important;
   left: var(--multiplex-left) !important;

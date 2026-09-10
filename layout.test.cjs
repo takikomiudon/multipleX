@@ -16,4 +16,7 @@ assert.equal(context.layoutSlot(2, heights).height, 88, '上の投稿がDOMか�
 assert.equal(context.layoutSlot(-1, new Map([[-1, 200]])).column, 3, '先頭への挿入も列番号を維持する');
 heights.set(1, 701);
 assert.equal(context.layoutSlot(0, heights).height, 176, '画像などの高さ変更を反映する');
+assert.equal(context.layoutDivider(0, 49, heights).height, 49, '先頭の通知は1行分の実寸');
+assert.equal(context.layoutDivider(2, 49, heights).offset, 352, '途中の通知は前の行の残りを空ける');
+assert.equal(context.layoutDivider(2, 49, heights).height, 401);
 console.log('PASS: native offsets, partial rows, prepending and resizing');
