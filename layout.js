@@ -1,7 +1,8 @@
 function needsTopBorder(index, part, heights) {
   if (part > 0) return false;
   if (!heights.has(index - 4)) return true;
-  return heights.get(index - 4) < layoutSlot(index - 4, heights).height * 4;
+  // Compare in native slot units so quarter-height rounding is not a gap.
+  return Math.ceil(heights.get(index - 4) / 4) < layoutSlot(index - 4, heights).height;
 }
 
 function layoutSlot(index, heights) {

@@ -44,3 +44,9 @@ assert.equal(context.needsTopBorder(4, 1, borderHeights), false, '連続した�
 borderHeights.set(0, 400);
 assert.equal(context.needsTopBorder(4, 0, borderHeights), false, '高さの変更で隙間がなくなれば線を消す');
 console.log('PASS: top separators only for separated posts');
+
+for (const maximum of [401, 402, 403, 682.46875]) {
+  const roundedHeights = new Map([[0, 220], [1, 280], [2, 340], [3, maximum]]);
+  assert.equal(context.needsTopBorder(7, 0, roundedHeights), false, '4分割の切り上げ端数は隙間に含めない');
+  assert.equal(context.needsTopBorder(4, 0, roundedHeights), true, '投稿の高さの違いによる余白には上線を残す');
+}
