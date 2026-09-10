@@ -62,6 +62,13 @@ async function run() {
   for (const cell of cells.slice(0, 2)) cell.remove();
   measureNativeTimeline(249);
   check(cells[4].firstElementChild.getBoundingClientRect().top === retainedTop, '仮想スクロールで先頭が消えても残る投稿は動かない');
+  const postRect = cells[5].getBoundingClientRect();
+  cells[5].firstElementChild.removeAttribute('data-testid');
+  cells[5].firstElementChild.textContent = 'ご協力ありがとうございます。フィードバックはタイムラインの精度向上に利用します。';
+  cells[5].firstElementChild.style.height = '74px';
+  measureNativeTimeline(249);
+  check(cells[5].getBoundingClientRect().width === postRect.width, '興味なしのお礼も元の投稿と同じ幅');
+  check(cells[5].getBoundingClientRect().x === postRect.x, '興味なしのお礼も元の列に残る');
   document.documentElement.classList.remove('multiplex-home');
   check(getComputedStyle(cells[4]).width === `${timeline.clientWidth}px`, 'ホーム以外では元の幅に戻る');
   document.documentElement.classList.add('multiplex-home');

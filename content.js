@@ -28,7 +28,7 @@ function layoutTimelines() {
     const cells = [...list.children].filter(cell => cell.dataset.testid === 'cellInnerDiv');
     const entries = cells.map(cell => ({
       cell,
-      fullWidth: cell.querySelectorAll('[data-testid="tweet"]').length === 0,
+      fullWidth: cell.querySelectorAll('article').length === 0,
       height: [...cell.children].reduce((sum, child) => sum + child.getBoundingClientRect().height, 0),
       index: 0,
     }));
