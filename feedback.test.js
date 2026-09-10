@@ -29,6 +29,7 @@ async function runFeedbackTests() {
   check(typeof labelFeedbackButtons === 'function', '興味なしボタンの処理が存在する');
   labelFeedbackButtons();
   check(caret.getAttribute('aria-label') === 'このポストに興味がない', 'ボタンの読み上げ名が置き換わる');
+  check(getComputedStyle(caret).minHeight === '20px', 'ボタンが名前の行を32pxに押し広げない');
   caret.click();
   caret.click();
   await new Promise(requestAnimationFrame);

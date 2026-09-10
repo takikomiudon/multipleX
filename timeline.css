@@ -48,7 +48,7 @@
 .multiplex-home [data-testid="primaryColumn"] .multiplex-top-border > :first-child::before {
   content: "";
   position: absolute;
-  top: -1px;
+  top: var(--multiplex-border-top);
   left: 0;
   right: 0;
   border-bottom: 1px solid;
@@ -59,7 +59,7 @@
 .multiplex-home [data-testid="primaryColumn"] article button[data-testid="caret"] {
   width: 32px !important;
   min-width: 32px;
-  min-height: 32px;
+  min-height: 20px;
   padding: 0;
   color: #71767b;
 }

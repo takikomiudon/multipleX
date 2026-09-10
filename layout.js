@@ -15,7 +15,7 @@ function layoutSlot(index, heights) {
     }
   }
   const height = Math.ceil(maximum / 4);
-  return { column, height, offset: column * height };
+  return { column, height, offset: column * height, rounding: height * 4 - maximum };
 }
 
 function layoutDivider(index, height, heights) {

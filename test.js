@@ -66,6 +66,7 @@ async function run() {
   cells[3].firstElementChild.style.height = '403px';
   measureNativeTimeline();
   check(getComputedStyle(cells[7].firstElementChild, '::before').content === 'none', '丸めで1px空いても上線を重ねない');
+  check(cells[4].firstElementChild.getBoundingClientRect().top + Number.parseFloat(getComputedStyle(cells[4].firstElementChild, '::before').top) === cells[3].firstElementChild.getBoundingClientRect().bottom - 1, '追加の線と前の行の下線を揃える');
   cells[3].firstElementChild.style.height = '400px';
   measureNativeTimeline();
   window.scrollTo(0, 150);

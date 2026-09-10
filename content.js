@@ -116,6 +116,7 @@ function layoutTimelines() {
         continue;
       }
       const slot = layoutThreadSlot(index, part, state.groups.get(index), state.heights);
+      cell.style.setProperty('--multiplex-border-top', `${-1 - layoutSlot(index - 4, state.heights).rounding}px`);
       cell.style.setProperty('--multiplex-width', '25%');
       cell.style.setProperty('--multiplex-left', `${slot.column * 25}%`);
       cell.style.setProperty('--multiplex-height', `${slot.height}px`);

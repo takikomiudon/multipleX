@@ -49,4 +49,6 @@ for (const maximum of [401, 402, 403, 682.46875]) {
   const roundedHeights = new Map([[0, 220], [1, 280], [2, 340], [3, maximum]]);
   assert.equal(context.needsTopBorder(7, 0, roundedHeights), false, '4分割の切り上げ端数は隙間に含めない');
   assert.equal(context.needsTopBorder(4, 0, roundedHeights), true, '投稿の高さの違いによる余白には上線を残す');
+  const row = context.layoutSlot(3, roundedHeights);
+  assert.equal(row.height * 4 - row.rounding - 1, maximum - 1, '追加の上線を直上の行の下線と同じ高さに揃える');
 }
