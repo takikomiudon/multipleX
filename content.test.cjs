@@ -7,6 +7,9 @@ const listeners = new Map();
 const classes = new Set();
 runInNewContext(readFileSync('content.js', 'utf8'), {
   location,
+  ResizeObserver: class { observe() {} },
+  MutationObserver: class { observe() {} },
+  requestAnimationFrame() {},
   document: { documentElement: { classList: {
     toggle(name, enabled) {
       if (enabled) classes.add(name);

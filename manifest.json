@@ -7,8 +7,8 @@
     {
       "matches": ["https://x.com/*"],
       "css": ["timeline.css"],
-      "js": ["content.js"],
-      "run_at": "document_start"
+      "js": ["layout.js", "content.js"],
+      "run_at": "document_idle"
     }
   ]
 }

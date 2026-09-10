@@ -26,20 +26,17 @@
   display: none !important;
 }
 
-.multiplex-home [data-testid="primaryColumn"] section [aria-label] > div:has(> [data-testid="cellInnerDiv"]) {
-  display: grid !important;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-  align-items: start;
-  min-height: 0 !important;
-}
-
 .multiplex-home [data-testid="primaryColumn"] section [aria-label] > div > [data-testid="cellInnerDiv"] {
-  position: relative !important;
-  transform: none !important;
-  width: 100% !important;
+  width: 25% !important;
   min-width: 0 !important;
+  height: var(--multiplex-height) !important;
+  left: var(--multiplex-left) !important;
+  overflow: visible !important;
 }
 
-.multiplex-home [data-testid="primaryColumn"] section [aria-label] > div > [data-testid="cellInnerDiv"]:not(:has([data-testid="tweet"])) {
-  grid-column: 1 / -1;
+/* Keep X's translateY and measured slot heights in the same coordinate system. */
+.multiplex-home [data-testid="primaryColumn"] section [aria-label] > div > [data-testid="cellInnerDiv"] > * {
+  position: relative;
+  top: var(--multiplex-offset) !important;
+  flex-shrink: 0 !important;
 }
