@@ -45,6 +45,7 @@ async function run() {
   check(cells[4].firstElementChild.getBoundingClientRect().top >= firstRow[0].bottom, '次の行と重ならない');
   check(document.documentElement.scrollWidth === innerWidth, '横にはみ出さない');
   check(getComputedStyle(cells[4].firstElementChild, '::before').borderBottomWidth === '1px', '余白の下の投稿に上線を描く');
+  check(getComputedStyle(cells[4].firstElementChild, '::before').top === '-1px', '上線を投稿の上端の外側に置き、直上の投稿の下線と揃える');
   check(getComputedStyle(cells[4].firstElementChild, '::before').borderBottomColor === getComputedStyle(cells[4].firstElementChild).borderBottomColor, '上線は既存の下線と同じ色');
   check(getComputedStyle(cells[7].firstElementChild, '::before').content === 'none', '接している投稿には上線を重ねない');
   cells[3].firstElementChild.style.height = '403px';
