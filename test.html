@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<title>multipleX ブラウザテスト</title>
+<style>
+  body { margin: 0; font: 16px sans-serif; }
+  main { display: flex; }
+  [data-testid="primaryColumn"] { width: 600px; max-width: 600px; }
+  [data-testid="sidebarColumn"] { width: 300px; }
+  [data-testid="cellInnerDiv"] { position: absolute; width: 100%; }
+  article { padding: 16px; border: 1px solid #888; height: 220px; box-sizing: border-box; }
+  output { display: block; padding: 12px; }
+</style>
+<link rel="stylesheet" href="timeline.css">
+<output id="result">テスト実行中</output>
+<main><div><div data-testid="primaryColumn"><section><div aria-label="Timeline: Home"><div style="position: relative; min-height: 9000px"></div></div></section></div><aside data-testid="sidebarColumn">サイドバー</aside></div></main>
+<script src="test.js"></script>
+</html>
