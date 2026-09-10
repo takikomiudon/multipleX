@@ -29,6 +29,7 @@ async function run() {
   const toggle = controls.querySelector('#toggle');
   const speed = controls.querySelector('#speed');
   check(!toggle.disabled, 'ポップアップが接続する');
+  check(speed.step === '10', '速度は10px/秒刻み');
   toggle.click();
   await wait(1000);
   check(scrollY >= 40 && scrollY <= 85, '初期速度60px/秒でスクロール');

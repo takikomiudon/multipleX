@@ -54,6 +54,7 @@ message({ type: 'multiplex-scroll:set', speed: 10, running: true });
 for (let i = 0; i < 60; i++) tick(1000 / 60);
 assert.ok(Math.abs(position - stopped - 10) <= 1, '低速でも端数が蓄積される');
 assert.ok(message({ type: 'multiplex-scroll:set', speed: -1, running: true }).error);
+assert.ok(message({ type: 'multiplex-scroll:set', speed: 15, running: true }).error, '10px刻み以外は受け付けない');
 location.pathname = '/search';
 events.get('navigatesuccess')();
 assert.equal(frames.size, 0);

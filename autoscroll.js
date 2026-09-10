@@ -27,8 +27,8 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
     return;
   }
   if (message.type === 'multiplex-scroll:set') {
-    if (!Number.isInteger(message.speed) || message.speed < 10 || message.speed > 300 || typeof message.running !== 'boolean') {
-      respond({ error: '速度は10〜300px/秒で指定してください。' });
+    if (!Number.isInteger(message.speed) || message.speed < 10 || message.speed > 300 || message.speed % 10 !== 0 || typeof message.running !== 'boolean') {
+      respond({ error: '速度は10〜300px/秒の範囲で、10px/秒刻みに指定してください。' });
       return;
     }
     scrollSpeed = message.speed;
