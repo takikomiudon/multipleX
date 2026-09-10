@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "multipleX",
+  "version": "0.1.0",
+  "description": "Xのホームタイムラインを4列に並べ、まとめてスクロールします。",
+  "content_scripts": [
+    {
+      "matches": ["https://x.com/*"],
+      "css": ["timeline.css"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ]
+}

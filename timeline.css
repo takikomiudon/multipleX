@@ -1,0 +1,36 @@
+/* X's own controls, colors and document scrollbar remain in use. */
+.multiplex-home main,
+.multiplex-home main > div {
+  flex: 1 !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.multiplex-home [data-testid="primaryColumn"] {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+.multiplex-home [data-testid="sidebarColumn"] {
+  display: none !important;
+}
+
+.multiplex-home [data-testid="primaryColumn"] section [aria-label] > div:has(> [data-testid="cellInnerDiv"]) {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  align-items: start;
+  min-height: 0 !important;
+}
+
+.multiplex-home [data-testid="primaryColumn"] section [aria-label] > div > [data-testid="cellInnerDiv"] {
+  position: relative !important;
+  transform: none !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.multiplex-home [data-testid="primaryColumn"] section [aria-label] > div > [data-testid="cellInnerDiv"]:not(:has([data-testid="tweet"])) {
+  grid-column: 1 / -1;
+}
