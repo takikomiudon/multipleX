@@ -5,6 +5,9 @@
 <style>
   body { margin: 0; font: 16px sans-serif; }
   main { display: flex; }
+  .shell { display: flex; }
+  header { flex: 1 0 auto; width: 275px; }
+  .timeline-wrapper { width: 100%; max-width: 600px; margin: auto; }
   [data-testid="primaryColumn"] { width: 600px; max-width: 600px; }
   [data-testid="sidebarColumn"] { width: 300px; }
   [data-testid="cellInnerDiv"] { position: absolute; width: 100%; }
@@ -13,6 +16,6 @@
 </style>
 <link rel="stylesheet" href="timeline.css">
 <output id="result">テスト実行中</output>
-<main><div><div data-testid="primaryColumn"><section><div aria-label="Timeline: Home"><div style="position: relative; min-height: 9000px"></div></div></section></div><aside data-testid="sidebarColumn">サイドバー</aside></div></main>
+<div class="shell"><header role="banner">メインメニュー</header><main><div><div data-testid="primaryColumn"><div class="timeline-wrapper"><section><div aria-label="Timeline: Home"><div style="position: relative; min-height: 9000px"></div></div></section></div></div><aside data-testid="sidebarColumn">サイドバー</aside></div></main></div>
 <script src="test.js"></script>
 </html>

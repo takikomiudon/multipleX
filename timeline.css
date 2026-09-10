@@ -1,4 +1,8 @@
 /* X's own controls, colors and document scrollbar remain in use. */
+.multiplex-home header[role="banner"] {
+  flex: 0 0 auto !important;
+}
+
 .multiplex-home main,
 .multiplex-home main > div {
   flex: 1 !important;
@@ -11,6 +15,11 @@
   width: 100% !important;
   max-width: none !important;
   min-width: 0 !important;
+}
+
+.multiplex-home [data-testid="primaryColumn"] div:has(> section) {
+  width: 100% !important;
+  max-width: none !important;
 }
 
 .multiplex-home [data-testid="sidebarColumn"] {

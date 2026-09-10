@@ -21,6 +21,7 @@ async function run() {
   await new Promise(requestAnimationFrame);
   const cells = [...timeline.children];
   const firstRow = cells.slice(0, 4).map(cell => cell.getBoundingClientRect());
+  check(firstRow[0].width >= (innerWidth - 280) / 4, 'メニュー以外の横幅を4列で使う');
   check(new Set(firstRow.map(rect => rect.x)).size === 4, '異なる4列に配置される');
   check(new Set(firstRow.map(rect => rect.y)).size === 1, '4列の先頭が揃う');
   check(cells[4].getBoundingClientRect().top >= firstRow[0].bottom, '次の行と重ならない');
@@ -36,4 +37,6 @@ async function run() {
   window.scrollTo(0, 0);
   result.textContent = 'PASS: 4列・行の重なり・横幅・共通スクロール・追加投稿・ホーム限定（6項目）';
 }
-run();
+window.addEventListener('load', () => {
+  requestAnimationFrame(() => requestAnimationFrame(run));
+});
