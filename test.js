@@ -90,8 +90,22 @@ async function run() {
   }
   measureNativeTimeline(nativeTop);
   check(cells[21].firstElementChild.getBoundingClientRect().top === replyTop, '親が画面外で削除されてもリプライの位置を維持する');
+  const nextPost = cells[23].firstElementChild.getBoundingClientRect();
+  const ad = document.createElement('div');
+  ad.dataset.testid = 'cellInnerDiv';
+  ad.innerHTML = '<div data-testid="placementTracking"><article data-testid="tweet" style="height:600px">広告の商品</article></div>';
+  timeline.insertBefore(ad, cells[23]);
+  cells[23].firstElementChild.insertAdjacentHTML('beforeend', '<div data-testid="placementTracking">広告について書いた通常の投稿</div>');
+  measureNativeTimeline(nativeTop);
+  check(getComputedStyle(ad).display === 'none', '広告の投稿を非表示にする');
+  check(ad.getBoundingClientRect().height === 0, '広告の高さを残さない');
+  check(cells[23].firstElementChild.getBoundingClientRect().x === nextPost.x && cells[23].firstElementChild.getBoundingClientRect().top === nextPost.top, '広告の空き列を残さない');
+  check(getComputedStyle(cells[23]).display !== 'none', '本文に広告と書いた通常の投稿は隠さない');
+  document.documentElement.classList.remove('multiplex-home');
+  check(getComputedStyle(ad).display !== 'none', 'ホーム以外の広告表示は変更しない');
+  document.documentElement.classList.add('multiplex-home');
   window.scrollTo(0, 0);
-  result.textContent = 'PASS: 4列・共通スクロール・通知・お礼・親子スレッド・仮想スクロール・ホーム限定';
+  result.textContent = 'PASS: 4列・共通スクロール・通知・お礼・スレッド・広告非表示・仮想スクロール・ホーム限定';
 }
 window.addEventListener('load', () => {
   requestAnimationFrame(() => requestAnimationFrame(run));

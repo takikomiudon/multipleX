@@ -26,7 +26,15 @@ function layoutTimelines() {
     if (!lists.has(list)) lists.set(list, { indices: new WeakMap(), parts: new WeakMap(), groups: new Map(), heights: new Map() });
     const state = lists.get(list);
     const cells = [...list.children].filter(cell => cell.dataset.testid === 'cellInnerDiv');
-    const entries = cells.map(cell => ({
+    const ads = new Set(cells.filter(cell => cell.querySelectorAll('[data-testid="placementTracking"] article[data-testid="tweet"]').length > 0));
+    for (const cell of ads) {
+      if (state.indices.has(cell)) {
+        state.groups.get(state.indices.get(cell)).delete(state.parts.get(cell));
+        state.indices.delete(cell);
+        state.parts.delete(cell);
+      }
+    }
+    const entries = cells.filter(cell => !ads.has(cell)).map(cell => ({
       cell,
       fullWidth: cell.querySelectorAll('article').length === 0,
       // X's upper conversation connector, observed on replies in the home timeline.
