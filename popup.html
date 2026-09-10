@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>multipleX</title>
+<style>
+  :root { color-scheme: light dark; font: 14px system-ui, sans-serif; }
+  body { width: 260px; margin: 0; padding: 20px; }
+  h1 { margin: 0 0 20px; font-size: 16px; }
+  label { display: flex; justify-content: space-between; align-items: baseline; }
+  output { font-variant-numeric: tabular-nums; }
+  input { width: 100%; margin: 16px 0 20px; accent-color: #1d9bf0; }
+  button { width: 100%; min-height: 40px; font: inherit; font-weight: 600; cursor: pointer; }
+  p { margin: 12px 0 0; font-size: 12px; line-height: 1.6; }
+  #error { color: light-dark(#b42318, #ff8b82); overflow-wrap: anywhere; }
+</style>
+<h1>自動スクロール</h1>
+<label for="speed">速度 <output id="value" for="speed">60 px/秒</output></label>
+<input id="speed" type="range" min="10" max="300" step="1" value="60" disabled>
+<button id="toggle" type="button" disabled>開始</button>
+<p>このタブのホームタイムラインをスクロールします。</p>
+<p id="error" role="alert"></p>
+<script src="popup.js"></script>
+</html>

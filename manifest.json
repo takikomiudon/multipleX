@@ -3,11 +3,12 @@
   "name": "multipleX",
   "version": "0.1.0",
   "description": "Xのホームタイムラインを4列に並べ、まとめてスクロールします。",
+  "action": { "default_popup": "popup.html", "default_title": "multipleX 自動スクロール" },
   "content_scripts": [
     {
       "matches": ["https://x.com/*"],
       "css": ["timeline.css"],
-      "js": ["layout.js", "feedback.js", "content.js"],
+      "js": ["layout.js", "feedback.js", "content.js", "autoscroll.js"],
       "run_at": "document_idle"
     }
   ]
