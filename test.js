@@ -102,7 +102,9 @@ async function run() {
     connector.className = 'r-1bnu78o r-m5arl1 r-1p0dtai';
     cell.firstElementChild.prepend(connector);
   }
+  cells[20].firstElementChild.style.borderBottom = '0px solid black';
   measureNativeTimeline(249);
+  check(getComputedStyle(cells[20].firstElementChild, '::before').borderBottomColor === 'rgb(136, 136, 136)', '下線のないスレッド親にもタイムラインの色で上線を描く');
   const thread = cells.slice(20, 23).map(cell => cell.firstElementChild.getBoundingClientRect());
   check(new Set(thread.map(rect => rect.x)).size === 1, '親と複数のリプライを同じ列にする');
   check(thread[1].top === thread[0].bottom && thread[2].top === thread[1].bottom, 'リプライを親の直下に隙間なく並べる');

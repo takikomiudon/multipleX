@@ -8,17 +8,17 @@
   .shell { display: flex; }
   header { flex: 1 0 auto; width: 275px; }
   .timeline-wrapper { width: 100%; max-width: 600px; margin: auto; }
-  [data-testid="primaryColumn"] { width: 600px; max-width: 600px; }
+  [data-testid="primaryColumn"] { width: 600px; max-width: 600px; border-color: #888; }
   [data-testid="sidebarColumn"] { width: 300px; }
   [data-testid="cellInnerDiv"] { position: absolute; width: 100%; }
   article { padding: 16px; border: 1px solid #888; height: 220px; box-sizing: border-box; }
   output { display: block; padding: 12px; }
 </style>
-<link rel="stylesheet" href="timeline.css?spacing-alignment">
+<link rel="stylesheet" href="timeline.css?thread-border">
 <output id="result">テスト実行中</output>
 <div class="shell"><header role="banner">メインメニュー</header><main><div><div data-testid="primaryColumn"><div class="timeline-wrapper"><section><div aria-label="Timeline: Home"><div style="position: relative; min-height: 9000px"></div></div></section></div></div><aside data-testid="sidebarColumn">サイドバー</aside></div></main></div>
 <script src="layout.js?spacing-alignment"></script>
 <script src="feedback.js"></script>
-<script src="content.js?spacing-alignment"></script>
+<script src="content.js?thread-border"></script>
 <script src="test.js"></script>
 </html>

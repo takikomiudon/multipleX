@@ -23,6 +23,7 @@ function layoutTimelines() {
   }
   const selector = '[data-testid="primaryColumn"] section [aria-label] > div:has(> [data-testid="cellInnerDiv"])';
   for (const list of document.querySelectorAll(selector)) {
+    list.style.setProperty('--multiplex-divider-color', getComputedStyle(list.closest('[data-testid="primaryColumn"]')).borderBottomColor);
     if (!lists.has(list)) lists.set(list, { indices: new WeakMap(), parts: new WeakMap(), groups: new Map(), heights: new Map() });
     const state = lists.get(list);
     const cells = [...list.children].filter(cell => cell.dataset.testid === 'cellInnerDiv');

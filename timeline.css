@@ -52,7 +52,7 @@
   left: 0;
   right: 0;
   border-bottom: 1px solid;
-  border-bottom-color: inherit;
+  border-bottom-color: var(--multiplex-divider-color);
   pointer-events: none;
 }
 
