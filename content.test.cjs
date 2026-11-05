@@ -11,7 +11,7 @@ runInNewContext(readFileSync('content.js', 'utf8'), {
   ResizeObserver: class { observe() {} },
   MutationObserver: class { observe() {} },
   requestAnimationFrame() {},
-  document: { documentElement: { classList: {
+  document: { addEventListener() {}, documentElement: { classList: {
     toggle(name, enabled) {
       if (enabled) classes.add(name);
       else classes.delete(name);

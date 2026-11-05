@@ -1,6 +1,9 @@
 const lists = new WeakMap();
 const observed = new Set();
+const timelineSelector = '[data-testid="primaryColumn"] section [aria-label] > div:has(> [data-testid="cellInnerDiv"])';
+const statusLinkSelector = 'article[data-testid="tweet"] a[href]:has(> time)';
 let scheduled = false;
+let homeReturn;
 const resizeObserver = new ResizeObserver(scheduleLayout);
 
 function scheduleLayout() {
@@ -10,6 +13,7 @@ function scheduleLayout() {
     scheduled = false;
     if (location.pathname !== '/home') return;
     layoutTimelines();
+    restoreHomePosition();
     labelFeedbackButtons();
   });
 }
@@ -21,12 +25,12 @@ function layoutTimelines() {
       observed.delete(child);
     }
   }
-  const selector = '[data-testid="primaryColumn"] section [aria-label] > div:has(> [data-testid="cellInnerDiv"])';
-  for (const list of document.querySelectorAll(selector)) {
+  for (const list of document.querySelectorAll(timelineSelector)) {
     list.style.setProperty('--multiplex-divider-color', getComputedStyle(list.closest('[data-testid="primaryColumn"]')).borderBottomColor);
     if (!lists.has(list)) lists.set(list, { indices: new WeakMap(), parts: new WeakMap(), groups: new Map(), heights: new Map() });
-    const state = lists.get(list);
     const cells = [...list.children].filter(cell => cell.dataset.testid === 'cellInnerDiv');
+    reuseHomeLayout(list, cells);
+    const state = lists.get(list);
     const skipped = new Set(cells.filter(cell =>
       cell.querySelectorAll('[data-testid="placementTracking"] article[data-testid="tweet"]').length > 0
       || (cell.querySelectorAll('article').length === 0
@@ -126,12 +130,118 @@ function layoutTimelines() {
   }
 }
 
+function clearHomeReturn() {
+  if (!homeReturn) return;
+  document.adoptedStyleSheets = document.adoptedStyleSheets.filter(sheet => sheet !== homeReturn.sheet);
+  homeReturn = undefined;
+}
+
+function saveHomePosition(event) {
+  if (location.pathname !== '/home') return;
+  clearHomeReturn();
+  if (!event.destination.sameDocument || !/^\/[^/]+\/status\/\d+$/.test(new URL(event.destination.url).pathname)) return;
+
+  const rules = [];
+  const layouts = new Map();
+  let anchor;
+  const scrollY = window.scrollY;
+  const viewport = document.documentElement.clientHeight;
+  for (const list of document.querySelectorAll(timelineSelector)) {
+    if (!lists.has(list)) continue;
+    const label = list.parentElement.getAttribute('aria-label');
+    const listSelector = `.multiplex-home [data-testid="primaryColumn"] section [aria-label="${CSS.escape(label)}"] > div`;
+    const state = lists.get(list);
+    const posts = new Map();
+    for (const cell of list.children) {
+      if (!state.indices.has(cell)) continue;
+      const link = cell.querySelector(statusLinkSelector);
+      if (!link) continue;
+      const href = link.getAttribute('href');
+      posts.set(href, { index: state.indices.get(cell), part: state.parts.get(cell) });
+      const selector = `${listSelector} > [data-testid="cellInnerDiv"]:has(article[data-testid="tweet"] a[href="${CSS.escape(href)}"] > time)`;
+      const properties = ['width', 'height', 'left', 'offset'].map(name => `--multiplex-${name}:${cell.style.getPropertyValue(`--multiplex-${name}`)}`).join(';');
+      rules.push(`${selector}{${properties}}`);
+      if (anchor) continue;
+      const rect = link.closest('article').getBoundingClientRect();
+      if (rect.bottom > 0 && rect.top < viewport) {
+        const nativeHeight = Number.parseFloat(list.style.minHeight);
+        const visibleBottom = viewport - list.getBoundingClientRect().top;
+        anchor = { selector, listSelector, top: rect.top, nativeHeight, requiredHeight: Math.min(nativeHeight, visibleBottom) };
+      }
+    }
+    layouts.set(label, { state, posts });
+  }
+  if (!anchor) return;
+
+  // Supply the last grid geometry before X measures its remounted cells.
+  const sheet = new CSSStyleSheet();
+  rules.unshift(`${anchor.listSelector}:has(> [data-testid="cellInnerDiv"]) { height: ${anchor.nativeHeight}px; }`);
+  sheet.replaceSync(rules.join('\n'));
+  document.adoptedStyleSheets.push(sheet);
+  homeReturn = { anchor, layouts, sheet, key: navigation.currentEntry.key, scrollEnded: scrollY === 0, corrections: new Set() };
+}
+
+function reuseHomeLayout(list, cells) {
+  if (!homeReturn || homeReturn.key !== navigation.currentEntry.key) return;
+  const label = list.parentElement.getAttribute('aria-label');
+  if (!homeReturn.layouts.has(label)) return;
+  const { state, posts } = homeReturn.layouts.get(label);
+  for (const cell of cells) {
+    const link = cell.querySelector(statusLinkSelector);
+    if (!link) continue;
+    cell.style.setProperty('--multiplex-width', '25%');
+    if (state.indices.has(cell)) continue;
+    const href = link.getAttribute('href');
+    if (!posts.has(href)) continue;
+    const { index, part } = posts.get(href);
+    if (!state.groups.has(index)) continue;
+    state.indices.set(cell, index);
+    state.parts.set(cell, part);
+    lists.set(list, state);
+  }
+}
+
+function restoreHomePosition() {
+  if (!homeReturn || homeReturn.key !== navigation.currentEntry.key || !homeReturn.scrollEnded) return;
+  const cell = document.querySelector(homeReturn.anchor.selector);
+  if (!cell) return;
+  // X initially mounts a short list before restoring its virtual scroll range.
+  const nativeHeight = Number.parseFloat(cell.parentElement.style.minHeight);
+  if (!(nativeHeight >= homeReturn.anchor.requiredHeight)) return;
+  const article = cell.querySelector(statusLinkSelector).closest('article');
+  const delta = article.getBoundingClientRect().top - homeReturn.anchor.top;
+  if (Math.abs(delta) < 1) return;
+  const current = Math.round(window.scrollY);
+  const target = Math.max(0, Math.round(window.scrollY + delta));
+  const correction = `${current}:${target}`;
+  // An identical correction after X scrolls back would repeat the same cycle.
+  if (current === target || homeReturn.corrections.has(correction)) return;
+  homeReturn.corrections.add(correction);
+  homeReturn.scrollEnded = false;
+  window.scrollTo({ top: target, behavior: 'instant' });
+}
+
 function updateHomeLayout() {
   document.documentElement.classList.toggle('multiplex-home', location.pathname === '/home');
+  if (homeReturn && location.pathname === '/home' && homeReturn.key !== navigation.currentEntry.key) clearHomeReturn();
   labelFeedbackButtons();
   scheduleLayout();
 }
 
 updateHomeLayout();
+navigation.addEventListener('navigate', saveHomePosition);
 navigation.addEventListener('navigatesuccess', updateHomeLayout);
+document.addEventListener('scroll', () => {
+  if (homeReturn && location.pathname === '/home' && homeReturn.key === navigation.currentEntry.key) homeReturn.scrollEnded = false;
+}, { passive: true });
+document.addEventListener('scrollend', () => {
+  if (!homeReturn || location.pathname !== '/home' || homeReturn.key !== navigation.currentEntry.key) return;
+  homeReturn.scrollEnded = true;
+  scheduleLayout();
+});
+for (const event of ['wheel', 'pointerdown', 'touchmove', 'keydown']) {
+  document.addEventListener(event, () => {
+    if (location.pathname === '/home') clearHomeReturn();
+  }, { passive: true, capture: true });
+}
 new MutationObserver(scheduleLayout).observe(document.documentElement, { childList: true, subtree: true });

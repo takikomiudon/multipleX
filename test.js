@@ -11,7 +11,7 @@ function appendPosts(start, end) {
     const cell = document.createElement('div');
     cell.dataset.testid = 'cellInnerDiv';
     cell.style.transform = `translateY(${index * 220}px)`;
-    cell.innerHTML = `<article data-testid="tweet">投稿 ${index + 1}<p>4列表示と共通スクロールの確認</p><button>操作ボタン</button></article>`;
+    cell.innerHTML = `<article data-testid="tweet"><a href="/someone/status/${index + 1}"><time>今日</time></a> 投稿 ${index + 1}<p>4列表示と共通スクロールの確認</p><button>操作ボタン</button></article>`;
     cell.firstElementChild.style.height = `${220 + (index % 4) * 60}px`;
     timeline.append(cell);
   }
@@ -24,6 +24,57 @@ function measureNativeTimeline(start = 0) {
     top += Math.ceil(cell.getBoundingClientRect().height);
   }
   timeline.style.minHeight = `${top}px`;
+}
+async function checkPostReturn() {
+  history.scrollRestoration = 'manual';
+  history.replaceState({}, '', '/home');
+  timeline.replaceChildren();
+  appendPosts(0, 32);
+  measureNativeTimeline();
+  window.scrollTo(0, 900);
+  const anchor = [...timeline.querySelectorAll('article')].find(article => article.getBoundingClientRect().bottom > 0);
+  const href = anchor.querySelector('a').getAttribute('href');
+  const top = anchor.getBoundingClientRect().top;
+  const cell = anchor.closest('[data-testid="cellInnerDiv"]');
+  const height = cell.getBoundingClientRect().height;
+  const before = window.scrollY;
+  const nativeHeight = timeline.style.minHeight;
+  const remounted = timeline.cloneNode(true);
+  remounted.style.minHeight = '0px';
+  for (const child of remounted.children) {
+    child.style.removeProperty('--multiplex-height');
+    child.style.removeProperty('--multiplex-width');
+    child.style.removeProperty('--multiplex-left');
+    child.style.removeProperty('--multiplex-offset');
+    child.style.transform = `translateY(${Number.parseFloat(child.style.transform.slice(11)) + 240}px)`;
+  }
+  const parent = timeline.parentElement;
+  history.pushState({}, '', href);
+  timeline.remove();
+  window.scrollTo(0, 0);
+  const returned = new Promise(resolve => {
+    function onNavigation() {
+      if (location.pathname !== '/home') return;
+      navigation.removeEventListener('navigatesuccess', onNavigation);
+      resolve();
+    }
+    navigation.addEventListener('navigatesuccess', onNavigation);
+  });
+  history.back();
+  await returned;
+  parent.append(remounted);
+  const restored = remounted.querySelector(`article:has(a[href="${href}"])`);
+  check(restored.closest('[data-testid="cellInnerDiv"]').getBoundingClientRect().height === height, 'ホームの投稿を再生成してもXが計測する高さを維持する');
+  check(remounted.getBoundingClientRect().height === Number.parseFloat(nativeHeight), 'Xのリストが復元されるまで元のスクロール範囲を維持する');
+  window.scrollTo(0, 50);
+  await new Promise(resolve => document.addEventListener('scrollend', resolve, { once: true }));
+  await new Promise(requestAnimationFrame);
+  check(window.scrollY === 50, 'Xの復元途中に拡張がスクロールを書き換えない');
+  remounted.style.minHeight = nativeHeight;
+  window.scrollTo(0, before);
+  await new Promise(resolve => document.addEventListener('scrollend', resolve, { once: true }));
+  await new Promise(requestAnimationFrame);
+  check(Math.abs(restored.getBoundingClientRect().top - top) <= 1, '戻ったあと同じ投稿が同じ位置に表示される');
 }
 async function run() {
   appendPosts(0, 24);
@@ -132,8 +183,8 @@ async function run() {
   document.documentElement.classList.remove('multiplex-home');
   check(getComputedStyle(ad).display !== 'none', 'ホーム以外の広告表示は変更しない');
   document.documentElement.classList.add('multiplex-home');
-  window.scrollTo(0, 0);
-  result.textContent = 'PASS: 4列・共通スクロール・通知・お礼・スレッド・広告非表示・仮想スクロール・ホーム限定';
+  await checkPostReturn();
+  result.textContent = 'PASS: 4列・共通スクロール・通知・お礼・スレッド・広告非表示・仮想スクロール・ホーム限定・単体表示からの復帰';
 }
 window.addEventListener('load', () => {
   requestAnimationFrame(() => requestAnimationFrame(run));
