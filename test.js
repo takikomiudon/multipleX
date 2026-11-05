@@ -29,18 +29,24 @@ async function checkPostReturn() {
   history.scrollRestoration = 'manual';
   history.replaceState({}, '', '/home');
   timeline.replaceChildren();
-  appendPosts(0, 32);
-  measureNativeTimeline();
-  window.scrollTo(0, 900);
-  const anchor = [...timeline.querySelectorAll('article')].find(article => article.getBoundingClientRect().bottom > 0);
+  appendPosts(400, 432);
+  measureNativeTimeline(40_000);
+  window.scrollTo(0, 40_900);
+  const [anchor, secondAnchor] = [...timeline.querySelectorAll('article')].filter(article => {
+    const rect = article.getBoundingClientRect();
+    return rect.bottom > 0 && rect.top < innerHeight;
+  });
   const href = anchor.querySelector('a').getAttribute('href');
+  const secondHref = secondAnchor.querySelector('a').getAttribute('href');
   const top = anchor.getBoundingClientRect().top;
+  const secondTop = secondAnchor.getBoundingClientRect().top;
   const cell = anchor.closest('[data-testid="cellInnerDiv"]');
   const height = cell.getBoundingClientRect().height;
   const before = window.scrollY;
   const nativeHeight = timeline.style.minHeight;
   const remounted = timeline.cloneNode(true);
   remounted.style.minHeight = '0px';
+  remounted.style.overflowAnchor = 'none';
   for (const child of remounted.children) {
     child.style.removeProperty('--multiplex-height');
     child.style.removeProperty('--multiplex-width');
@@ -66,6 +72,20 @@ async function checkPostReturn() {
   const restored = remounted.querySelector(`article:has(a[href="${href}"])`);
   check(restored.closest('[data-testid="cellInnerDiv"]').getBoundingClientRect().height === height, 'ホームの投稿を再生成してもXが計測する高さを維持する');
   check(remounted.getBoundingClientRect().height === Number.parseFloat(nativeHeight), 'Xのリストが復元されるまで元のスクロール範囲を維持する');
+  const newCell = remounted.lastElementChild.cloneNode(true);
+  newCell.querySelector('a').setAttribute('href', '/someone/status/9999');
+  const firstNativeMeasurement = new Promise(resolve => {
+    const observer = new ResizeObserver(([entry]) => {
+      observer.disconnect();
+      resolve(entry.contentRect.height);
+    });
+    observer.observe(newCell);
+  });
+  await new Promise(resolve => requestAnimationFrame(() => {
+    remounted.append(newCell);
+    resolve();
+  }));
+  check(await firstNativeMeasurement === Number.parseFloat(newCell.style.getPropertyValue('--multiplex-height')), 'Xが未計測のセルを最初から4列の高さで計測する');
   window.scrollTo(0, 50);
   await new Promise(resolve => document.addEventListener('scrollend', resolve, { once: true }));
   await new Promise(requestAnimationFrame);
@@ -75,6 +95,24 @@ async function checkPostReturn() {
   await new Promise(resolve => document.addEventListener('scrollend', resolve, { once: true }));
   await new Promise(requestAnimationFrame);
   check(Math.abs(restored.getBoundingClientRect().top - top) <= 1, '戻ったあと同じ投稿が同じ位置に表示される');
+  await new Promise(resolve => document.addEventListener('scrollend', resolve, { once: true }));
+  await new Promise(requestAnimationFrame);
+  for (const child of remounted.children) {
+    child.style.transform = `translateY(${Number.parseFloat(child.style.transform.slice(11)) + 840}px)`;
+  }
+  await new Promise(requestAnimationFrame);
+  await new Promise(requestAnimationFrame);
+  check(Math.abs(restored.getBoundingClientRect().top - top) <= 1, '4万px以降でXがセルの位置だけを再計算しても、同じ投稿の位置を維持する');
+  await new Promise(requestAnimationFrame);
+  restored.closest('[data-testid="cellInnerDiv"]').remove();
+  await new Promise(requestAnimationFrame);
+  for (const child of remounted.children) {
+    child.style.transform = `translateY(${Number.parseFloat(child.style.transform.slice(11)) - 600}px)`;
+  }
+  await new Promise(requestAnimationFrame);
+  await new Promise(requestAnimationFrame);
+  const second = remounted.querySelector(`article:has(a[href="${secondHref}"])`);
+  check(Math.abs(second.getBoundingClientRect().top - secondTop) <= 1, '先頭の投稿が仮想リストから外れても、同じ画面内にいた投稿の位置を維持する');
 }
 async function run() {
   appendPosts(0, 24);
@@ -184,7 +222,7 @@ async function run() {
   check(getComputedStyle(ad).display !== 'none', 'ホーム以外の広告表示は変更しない');
   document.documentElement.classList.add('multiplex-home');
   await checkPostReturn();
-  result.textContent = 'PASS: 4列・共通スクロール・通知・お礼・スレッド・広告非表示・仮想スクロール・ホーム限定・単体表示からの復帰';
+  result.textContent = 'PASS: 4列・共通スクロール・通知・お礼・スレッド・広告非表示・仮想スクロール・ホーム限定・4万px以降の単体表示からの復帰';
 }
 window.addEventListener('load', () => {
   requestAnimationFrame(() => requestAnimationFrame(run));

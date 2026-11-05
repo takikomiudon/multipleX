@@ -30,6 +30,10 @@
   display: none !important;
 }
 
+.multiplex-home [data-testid="primaryColumn"] section [aria-label] > div > [data-testid="cellInnerDiv"]:has(article) {
+  --multiplex-width: 25%;
+}
+
 .multiplex-home [data-testid="primaryColumn"] section [aria-label] > div > [data-testid="cellInnerDiv"] {
   width: var(--multiplex-width) !important;
   min-width: 0 !important;

@@ -1,18 +1,38 @@
 const lists = new WeakMap();
 const observed = new Set();
-const timelineSelector = '[data-testid="primaryColumn"] section [aria-label] > div:has(> [data-testid="cellInnerDiv"])';
+const cellSelector = '[data-testid="cellInnerDiv"]';
+const timelineSelector = `[data-testid="primaryColumn"] section [aria-label] > div:has(> ${cellSelector})`;
 const statusLinkSelector = 'article[data-testid="tweet"] a[href]:has(> time)';
 let scheduled = false;
+let layoutNeeded = false;
 let homeReturn;
 const resizeObserver = new ResizeObserver(scheduleLayout);
+const returnObserver = new MutationObserver(() => {
+  if (!homeReturn || !homeReturn.geometry) return;
+  const geometry = homeReturn.geometry;
+  const position = geometry.cell.style.transform + geometry.cell.style.top;
+  const minHeight = geometry.list.style.minHeight;
+  if (position === geometry.position && minHeight === geometry.minHeight) return;
+  geometry.position = position;
+  geometry.minHeight = minHeight;
+  scheduleFrame();
+});
 
 function scheduleLayout() {
+  layoutNeeded = true;
+  scheduleFrame();
+}
+
+function scheduleFrame() {
   if (scheduled) return;
   scheduled = true;
   requestAnimationFrame(() => {
     scheduled = false;
     if (location.pathname !== '/home') return;
-    layoutTimelines();
+    if (layoutNeeded) {
+      layoutNeeded = false;
+      layoutTimelines();
+    }
     restoreHomePosition();
     labelFeedbackButtons();
   });
@@ -132,6 +152,7 @@ function layoutTimelines() {
 
 function clearHomeReturn() {
   if (!homeReturn) return;
+  returnObserver.disconnect();
   document.adoptedStyleSheets = document.adoptedStyleSheets.filter(sheet => sheet !== homeReturn.sheet);
   homeReturn = undefined;
 }
@@ -143,7 +164,8 @@ function saveHomePosition(event) {
 
   const rules = [];
   const layouts = new Map();
-  let anchor;
+  const anchors = [];
+  let range;
   const scrollY = window.scrollY;
   const viewport = document.documentElement.clientHeight;
   for (const list of document.querySelectorAll(timelineSelector)) {
@@ -158,27 +180,29 @@ function saveHomePosition(event) {
       if (!link) continue;
       const href = link.getAttribute('href');
       posts.set(href, { index: state.indices.get(cell), part: state.parts.get(cell) });
-      const selector = `${listSelector} > [data-testid="cellInnerDiv"]:has(article[data-testid="tweet"] a[href="${CSS.escape(href)}"] > time)`;
+      const selector = `${listSelector} > ${cellSelector}:has(article[data-testid="tweet"] a[href="${CSS.escape(href)}"] > time)`;
       const properties = ['width', 'height', 'left', 'offset'].map(name => `--multiplex-${name}:${cell.style.getPropertyValue(`--multiplex-${name}`)}`).join(';');
       rules.push(`${selector}{${properties}}`);
-      if (anchor) continue;
       const rect = link.closest('article').getBoundingClientRect();
       if (rect.bottom > 0 && rect.top < viewport) {
-        const nativeHeight = Number.parseFloat(list.style.minHeight);
-        const visibleBottom = viewport - list.getBoundingClientRect().top;
-        anchor = { selector, listSelector, top: rect.top, nativeHeight, requiredHeight: Math.min(nativeHeight, visibleBottom) };
+        anchors.push({ selector, top: rect.top });
+        if (!range) {
+          const nativeHeight = Number.parseFloat(list.style.minHeight);
+          const visibleBottom = viewport - list.getBoundingClientRect().top;
+          range = { listSelector, nativeHeight, requiredHeight: Math.min(nativeHeight, visibleBottom) };
+        }
       }
     }
     layouts.set(label, { state, posts });
   }
-  if (!anchor) return;
+  if (!range) return;
 
   // Supply the last grid geometry before X measures its remounted cells.
   const sheet = new CSSStyleSheet();
-  rules.unshift(`${anchor.listSelector}:has(> [data-testid="cellInnerDiv"]) { height: ${anchor.nativeHeight}px; }`);
+  rules.unshift(`${range.listSelector}:has(> ${cellSelector}) { height: ${range.nativeHeight}px; }`);
   sheet.replaceSync(rules.join('\n'));
   document.adoptedStyleSheets.push(sheet);
-  homeReturn = { anchor, layouts, sheet, key: navigation.currentEntry.key, scrollEnded: scrollY === 0, corrections: new Set() };
+  homeReturn = { anchors, range, layouts, sheet, key: navigation.currentEntry.key, scrollEnded: scrollY === 0, corrections: new Set() };
 }
 
 function reuseHomeLayout(list, cells) {
@@ -187,10 +211,9 @@ function reuseHomeLayout(list, cells) {
   if (!homeReturn.layouts.has(label)) return;
   const { state, posts } = homeReturn.layouts.get(label);
   for (const cell of cells) {
+    if (state.indices.has(cell)) continue;
     const link = cell.querySelector(statusLinkSelector);
     if (!link) continue;
-    cell.style.setProperty('--multiplex-width', '25%');
-    if (state.indices.has(cell)) continue;
     const href = link.getAttribute('href');
     if (!posts.has(href)) continue;
     const { index, part } = posts.get(href);
@@ -202,14 +225,27 @@ function reuseHomeLayout(list, cells) {
 }
 
 function restoreHomePosition() {
-  if (!homeReturn || homeReturn.key !== navigation.currentEntry.key || !homeReturn.scrollEnded) return;
-  const cell = document.querySelector(homeReturn.anchor.selector);
-  if (!cell) return;
-  // X initially mounts a short list before restoring its virtual scroll range.
-  const nativeHeight = Number.parseFloat(cell.parentElement.style.minHeight);
-  if (!(nativeHeight >= homeReturn.anchor.requiredHeight)) return;
-  const article = cell.querySelector(statusLinkSelector).closest('article');
-  const delta = article.getBoundingClientRect().top - homeReturn.anchor.top;
+  if (!homeReturn || homeReturn.key !== navigation.currentEntry.key) return;
+  for (const anchor of homeReturn.anchors) {
+    const cell = document.querySelector(anchor.selector);
+    if (!cell) continue;
+    const list = cell.parentElement;
+    if (!homeReturn.geometry || homeReturn.geometry.cell !== cell || homeReturn.geometry.list !== list) {
+      returnObserver.disconnect();
+      returnObserver.observe(cell, { attributes: true, attributeFilter: ['style'] });
+      returnObserver.observe(list, { attributes: true, attributeFilter: ['style'] });
+      homeReturn.geometry = { cell, list, position: cell.style.transform + cell.style.top, minHeight: list.style.minHeight };
+    }
+    if (!homeReturn.scrollEnded) return;
+    // X initially mounts a short list before restoring its virtual scroll range.
+    if (!(Number.parseFloat(list.style.minHeight) >= homeReturn.range.requiredHeight)) return;
+    const article = cell.querySelector(statusLinkSelector).closest('article');
+    correctHomePosition(article.getBoundingClientRect().top - anchor.top);
+    return;
+  }
+}
+
+function correctHomePosition(delta) {
   if (Math.abs(delta) < 1) return;
   const current = Math.round(window.scrollY);
   const target = Math.max(0, Math.round(window.scrollY + delta));
@@ -228,6 +264,22 @@ function updateHomeLayout() {
   scheduleLayout();
 }
 
+function handleHomeMutations(records) {
+  if (location.pathname !== '/home') return;
+  for (const { addedNodes } of records) {
+    for (const node of addedNodes) {
+      if (!(node instanceof Element)) continue;
+      if (!node.matches(cellSelector) && !node.querySelector(cellSelector)) continue;
+      // ResizeObserver can measure cells inserted during X's animation frame before the next frame.
+      layoutTimelines();
+      layoutNeeded = false;
+      scheduleFrame();
+      return;
+    }
+  }
+  scheduleLayout();
+}
+
 updateHomeLayout();
 navigation.addEventListener('navigate', saveHomePosition);
 navigation.addEventListener('navigatesuccess', updateHomeLayout);
@@ -237,11 +289,11 @@ document.addEventListener('scroll', () => {
 document.addEventListener('scrollend', () => {
   if (!homeReturn || location.pathname !== '/home' || homeReturn.key !== navigation.currentEntry.key) return;
   homeReturn.scrollEnded = true;
-  scheduleLayout();
+  scheduleFrame();
 });
 for (const event of ['wheel', 'pointerdown', 'touchmove', 'keydown']) {
   document.addEventListener(event, () => {
     if (location.pathname === '/home') clearHomeReturn();
   }, { passive: true, capture: true });
 }
-new MutationObserver(scheduleLayout).observe(document.documentElement, { childList: true, subtree: true });
+new MutationObserver(handleHomeMutations).observe(document.documentElement, { childList: true, subtree: true });
